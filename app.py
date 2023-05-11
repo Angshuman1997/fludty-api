@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_pymongo import PyMongo
+from flask_cors import CORS, cross_origin
 import json
 import os
 from bson import json_util
@@ -8,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 mongo = PyMongo(app)
 
