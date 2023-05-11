@@ -23,5 +23,5 @@ def one_drinks(id):
     format_data = [json.dumps(doc, default=json_util.default) for doc in data]
     return {"data": format_data}
 
-
-app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    app.run()
