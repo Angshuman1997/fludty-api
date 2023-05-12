@@ -39,7 +39,7 @@ def token_required(func):
 @app.route("/drinks", endpoint='all_drinks')
 @token_required
 def all_drinks():
-    data = mongo.db.drinks.find({}, {'_id': 1, 'name': 1, 'image': 1}).skip(int(request.form['offset'])).limit(10)
+    data = mongo.db.drinks.find({}, {'_id': 1, 'name': 1, 'image': 1}).skip(int(request.headers["offset"])).limit(10)
     format_data = [json.dumps(doc, default=json_util.default) for doc in data]
     return {"data": format_data}
 
