@@ -78,7 +78,7 @@ def login():
             if fetch_data['password'] == request.form['password']:
                 session['logged_in'] = True
                 token = jwt.encode({'user': request.form['userid'],'expiration': str(datetime.now() + timedelta(seconds=3600)).split(".")[0]},app.config['SECRET_KEY'])
-                return jsonify({'token': token}), 200
+                return jsonify({'token': token, 'userid': fetch_data["userid"], 'name': fetch_data["name"], 'email': fetch_data["email"]}), 200
             else:
                 return jsonify({'Message': "Invalid Password"}), 400
         else:
