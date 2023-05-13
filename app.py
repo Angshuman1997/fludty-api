@@ -39,17 +39,15 @@ def token_required(func):
 @app.route("/drinks", endpoint='all_drinks')
 @token_required
 def all_drinks():
-    if "search" in request.headers:
-        search_value = request.headers["search"]
-        count = mongo.db.drinks.count_documents({"name": { "$regex": search_value, "$options": "i" }})
-        data = mongo.db.drinks.find({"name": { "$regex": search_value, "$options": "i" }}, {'_id': 1, 'name': 1, 'image': 1}).skip(int(request.headers["offset"])).limit(10)
-        format_data = [json.dumps(doc, default=json_util.default) for doc in data]
-        return {"data": format_data, "total": count}
-    else:
-        count = mongo.db.drinks.count_documents({})
-        data = mongo.db.drinks.find({}, {'_id': 1, 'name': 1, 'image': 1}).skip(int(request.headers["offset"])).limit(10)
-        format_data = [json.dumps(doc, default=json_util.default) for doc in data]
-        return {"data": format_data, "total": count}
+    doc = {}
+    if len(request.headers["search"].strip()) > 0:
+        search_value = request.headers["search"].strip()
+        doc = {"name": { "$regex": search_value, "$options": "i" }}
+    
+    count = mongo.db.drinks.count_documents(doc)
+    data = mongo.db.drinks.find(doc, {'_id': 1, 'name': 1, 'image': 1}).skip(int(request.headers["offset"])).limit(10)
+    format_data = [json.dumps(doc, default=json_util.default) for doc in data]
+    return {"data": format_data, "total": count}
 
 @app.route("/drinks/<id>", endpoint='one_drink')
 @token_required
