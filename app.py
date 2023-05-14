@@ -45,7 +45,7 @@ def all_drinks():
         doc = {"name": { "$regex": search_value, "$options": "i" }}
     
     count = mongo.db.drinks.count_documents(doc)
-    data = mongo.db.drinks.find(doc, {'_id': 1, 'name': 1, 'image': 1}).skip(int(request.headers["offset"])).limit(10)
+    data = mongo.db.drinks.find(doc, {'_id': 1, 'name': 1, 'image': 1, 'favourite': 1}).skip(int(request.headers["offset"])).limit(10)
     format_data = [json.dumps(doc, default=json_util.default) for doc in data]
     return {"data": format_data, "total": count}
 
