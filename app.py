@@ -43,6 +43,9 @@ def all_drinks():
     if len(request.headers["search"].strip()) > 0:
         search_value = request.headers["search"].strip()
         doc = {"name": { "$regex": search_value, "$options": "i" }}
+        
+    elif request.headers["favSort"] == "true":
+        doc = {"favourite": request.headers["userid"]}
     
     count = mongo.db.drinks.count_documents(doc)
     data = mongo.db.drinks.find(doc, {'_id': 1, 'name': 1, 'image': 1, 'favourite': 1}).skip(int(request.headers["offset"])).limit(10)
