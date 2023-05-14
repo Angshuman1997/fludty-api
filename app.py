@@ -26,7 +26,7 @@ def token_required(func):
         if not token:
             return jsonify({'Alert!': 'Token is missing!'}), 401
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=[os.getenv("ALGO")])
             if datetime.strptime(data['expiration'], '%Y-%m-%d %H:%M:%S') > datetime.now():
                 pass
             else:
