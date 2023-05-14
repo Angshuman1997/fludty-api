@@ -59,11 +59,11 @@ def one_drink(id):
 @app.route("/favdrink/<id>", endpoint='fav_one_drink', methods=['PUT'])
 @token_required
 def fav_one_drink(id):
-    if request.form['fav_type'] == "add":
-        data = mongo.db.drinks.update_one({'_id': ObjectId(id)}, {'$push': {'favourite': request.form['userid']}})
+    if request.headers['fav_type'] == "add":
+        data = mongo.db.drinks.update_one({'_id': ObjectId(id)}, {'$push': {'favourite': request.headers['userid']}})
         msg = "Added to Favourites"
     else:
-        data = mongo.db.drinks.update_one({'_id': ObjectId(id)}, {'$pull': {'favourite': request.form['userid']}})
+        data = mongo.db.drinks.update_one({'_id': ObjectId(id)}, {'$pull': {'favourite': request.headers['userid']}})
         msg = "Removed from Favourites"
     if data:
         return jsonify({'Message': msg}), 200
