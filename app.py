@@ -32,23 +32,23 @@ def jumble_func(word, pattern, action):
     
     return "".join(temp_word)
 
-def decode_func(str_val):
+def decode_func(type, doc_arr):
     mot = os.getenv('SECRET_MOTION')
     pat = os.getenv('SECRET_PATTERN').split(",")
-    decode  = jwt.decode(str_val, app.config['SECRET_KEY'], algorithms=[os.getenv("ALGO")])
-    if decode["lt"] == "login":
+
+    if type == "login":
         temp = {
             "login_type": "login",
-            "userid": jumble_func(decode["ud"], pat, mot),
-            "password": jumble_func(decode["pd"], pat, mot)
+            "userid": jumble_func(doc_arr[0], pat, mot),
+            "password": jumble_func(doc_arr[1], pat, mot)
         }
     else:
         temp = {
             "login_type": "register",
-            "userid": jumble_func(decode["ud"], pat, mot),
-            "password": jumble_func(decode["pd"], pat, mot),
-            "name": jumble_func(decode["ne"], pat, mot),
-            "email": jumble_func(decode["el"], pat, mot)
+            "userid": jumble_func(doc_arr[0], pat, mot),
+            "password": jumble_func(doc_arr[1], pat, mot),
+            "name": jumble_func(doc_arr[2], pat, mot),
+            "email": jumble_func(doc_arr[3], pat, mot)
         }
 
     return temp
@@ -110,9 +110,9 @@ def fav_one_drink(id):
 
 @app.route('/login', methods=['POST'])
 def login():
-    val_data = decode_func(request.headers['Validate'])
-    
-    if val_data['login_type'] == "login":
+     
+    if request.form['lt'] == "login":
+        val_data = decode_func(request.form['lt'], [request.form['ud'], request.form['pd']])
         fetch_data = mongo.db.accounts.find_one({'userid': val_data['userid']})
         if fetch_data:
             if fetch_data['password'] == val_data['password']:
@@ -124,6 +124,7 @@ def login():
         else:
             return jsonify({'Message': "Account doesn't exists, please register"}), 400
     else:
+        val_data = decode_func(request.form['lt'], [request.form['ud'], request.form['pd'], request.form['ne'], request.form['el']])
         fetch_userid = mongo.db.accounts.find_one({'userid': val_data['userid']})
         fetch_email = mongo.db.accounts.find_one({'email': val_data['email']})
 
