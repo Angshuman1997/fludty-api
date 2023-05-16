@@ -18,6 +18,41 @@ app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 mongo = PyMongo(app)
 
+def jumble_func(word, pattern, action):
+    word_len = len(word)
+    temp_patt = [pattern] * word_len
+    temp_patt = [item for sublist in temp_patt for item in sublist][:word_len]
+    temp_word = []
+    
+    for i in range(len(word)):
+        if action == "up":
+            temp_word.append(chr(ord(word[i]) + int(temp_patt[i])))
+        else:
+            temp_word.append(chr(ord(word[i]) - int(temp_patt[i])))
+    
+    return "".join(temp_word)
+
+def decode_func(str_val):
+    mot = os.getenv('SECRET_MOTION')
+    pat = os.getenv('SECRET_PATTERN').split(",")
+    decode  = jwt.decode(str_val, app.config['SECRET_KEY'], algorithms=[os.getenv("ALGO")])
+    if decode["lt"] == "login":
+        temp = {
+            "login_type": "login",
+            "userid": jumble_func(decode["ud"], pat, mot),
+            "password": jumble_func(decode["pd"], pat, mot)
+        }
+    else:
+        temp = {
+            "login_type": "register",
+            "userid": jumble_func(decode["ud"], pat, mot),
+            "password": jumble_func(decode["pd"], pat, mot),
+            "name": jumble_func(decode["ne"], pat, mot),
+            "email": jumble_func(decode["el"], pat, mot)
+        }
+
+    return temp
+
 def token_required(func):
     def decorated(*args, **kwargs):
         token = None
@@ -75,20 +110,22 @@ def fav_one_drink(id):
 
 @app.route('/login', methods=['POST'])
 def login():
-    if request.form['login_type'] == "login":
-        fetch_data = mongo.db.accounts.find_one({'userid': request.form['userid']})
+    val_data = decode_func(request.headers['Validate'])
+    
+    if val_data['login_type'] == "login":
+        fetch_data = mongo.db.accounts.find_one({'userid': val_data['userid']})
         if fetch_data:
-            if fetch_data['password'] == request.form['password']:
+            if fetch_data['password'] == val_data['password']:
                 session['logged_in'] = True
-                token = jwt.encode({'user': request.form['userid'], 'name': fetch_data["name"], 'email': fetch_data["email"], 'expiration': str(datetime.now() + timedelta(seconds=3600)).split(".")[0]},app.config['SECRET_KEY'])
+                token = jwt.encode({'user': val_data['userid'], 'name': fetch_data["name"], 'email': fetch_data["email"], 'expiration': str(datetime.now() + timedelta(seconds=3600)).split(".")[0]},app.config['SECRET_KEY'])
                 return jsonify({'token': token }), 200
             else:
                 return jsonify({'Message': "Invalid Password"}), 400
         else:
             return jsonify({'Message': "Account doesn't exists, please register"}), 400
     else:
-        fetch_userid = mongo.db.accounts.find_one({'userid': request.form['userid']})
-        fetch_email = mongo.db.accounts.find_one({'email': request.form['email']})
+        fetch_userid = mongo.db.accounts.find_one({'userid': val_data['userid']})
+        fetch_email = mongo.db.accounts.find_one({'email': val_data['email']})
 
         if fetch_userid and fetch_email:
             return jsonify({'Message': "Please provide a different userid and email"}), 400 
@@ -97,7 +134,7 @@ def login():
         elif fetch_userid:
             return jsonify({'Message': "Please provide a different userid"}), 400
         else:
-            upData = mongo.db.accounts.insert_one({'userid': request.form['userid'], 'password': request.form['password'], 'name': request.form['name'], 'email': request.form['email'], 'createdAt': datetime.now()})
+            upData = mongo.db.accounts.insert_one({'userid': val_data['userid'], 'password': val_data['password'], 'name': val_data['name'], 'email': val_data['email'], 'createdAt': datetime.now()})
             if upData:
                 return jsonify({'Message': "Account Added"}), 200
             else:
