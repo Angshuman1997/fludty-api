@@ -123,7 +123,7 @@ def login():
         return jsonify({'Message': "Account doesn't exists, please register"}), 400
             
 @app.route('/register', methods=['POST'])
-def login():
+def register():
      
         val_data = decode_func(request.form['lt'], [request.form['ud'], request.form['pd'], request.form['ne'], request.form['el']])
         fetch_userid = mongo.db.accounts.find_one({'userid': val_data['userid']})
