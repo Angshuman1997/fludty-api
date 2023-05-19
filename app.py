@@ -110,20 +110,21 @@ def fav_one_drink(id):
 
 @app.route('/login', methods=['POST'])
 def login():
-     
-    if request.form['lt'] == "login":
-        val_data = decode_func(request.form['lt'], [request.form['ud'], request.form['pd']])
-        fetch_data = mongo.db.accounts.find_one({'userid': val_data['userid']})
-        if fetch_data:
-            if fetch_data['password'] == val_data['password']:
-                session['logged_in'] = True
-                token = jwt.encode({'user': val_data['userid'], 'name': fetch_data["name"], 'email': fetch_data["email"], 'expiration': str(datetime.now() + timedelta(seconds=3600)).split(".")[0]},app.config['SECRET_KEY'])
-                return jsonify({'token': token }), 200
-            else:
-                return jsonify({'Message': "Invalid Password"}), 400
+    val_data = decode_func(request.form['lt'], [request.form['ud'], request.form['pd']])
+    fetch_data = mongo.db.accounts.find_one({'userid': val_data['userid']})
+    if fetch_data:
+        if fetch_data['password'] == val_data['password']:
+            session['logged_in'] = True
+            token = jwt.encode({'user': val_data['userid'], 'name': fetch_data["name"], 'email': fetch_data["email"], 'expiration': str(datetime.now() + timedelta(seconds=3600)).split(".")[0]},app.config['SECRET_KEY'])
+            return jsonify({'token': token }), 200
         else:
-            return jsonify({'Message': "Account doesn't exists, please register"}), 400
+            return jsonify({'Message': "Invalid Password"}), 400
     else:
+        return jsonify({'Message': "Account doesn't exists, please register"}), 400
+            
+@app.route('/register', methods=['POST'])
+def login():
+     
         val_data = decode_func(request.form['lt'], [request.form['ud'], request.form['pd'], request.form['ne'], request.form['el']])
         fetch_userid = mongo.db.accounts.find_one({'userid': val_data['userid']})
         fetch_email = mongo.db.accounts.find_one({'email': val_data['email']})
